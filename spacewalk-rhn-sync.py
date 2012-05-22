@@ -72,10 +72,10 @@ def rhnget(chan, filename, options):
     if os.path.exists("%s/%s" % (options.download_dir, filename)):
         if options.verbose:
             print "  - File %s already downloaded" % filename
-        return "%s/%s" % (dir, filename)
+        return "%s/%s" % (options.download_dir, filename)
     rhngetcmd="/usr/bin/rhnget --filter=%s --systemid=%s rhns:///%s %s" % (filename, options.sysid_file, chan, options.download_dir)
     if options.proxy:
-        proxy_def={"http_proxy": "http://%s" % proxy, "https_proxy": "http://%s" % proxy}
+        proxy_def={"http_proxy": "http://%s" % options.proxy, "https_proxy": "http://%s" % options.proxy}
         rhngetproc = Popen(rhngetcmd, shell=True,stdout=PIPE, stderr=PIPE, env=proxy_def)
     else:
         rhngetproc = Popen(rhngetcmd, shell=True,stdout=PIPE, stderr=PIPE)
@@ -84,7 +84,7 @@ def rhnget(chan, filename, options):
         if not options.quiet:
             print "  - Not succeeded"
             print output
-    return "%s/%s" % (dir, filename)
+    return "%s/%s" % (options.download_dir, filename)
 
 
 def spwpush(chan, local_filename, options):
