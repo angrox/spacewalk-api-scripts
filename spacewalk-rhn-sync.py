@@ -35,12 +35,6 @@
 #
 #
 
-# TODO: 
-#    - Execption handling is completly missing
-#    - Maybe merge with rhn-clone-errata.py?
-#    - Get rid of the rhnget shell command and import the up2date python
-#      module
-#
 
 import xmlrpclib
 import httplib
