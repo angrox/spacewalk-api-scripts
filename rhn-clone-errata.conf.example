@@ -1,0 +1,30 @@
+[Global]
+proxy = 10.158.0.79:80
+
+[Spacewalk]
+spw_server = spacewalk.example.com
+spw_user = admin
+spw_pass = <password>
+
+[RHN]
+rhn_server = xmlrpc.rhn.redhat.com
+rhn_user = <rhn user>
+rhn_pass = <rhn passwd>
+
+
+[ChanMap]
+rhel-x86_64-server-6 = myown-rhel-6-x86_64
+rhel-x86_64-server-ha-6 = myown-rhel-6-ha-x86_64
+rhel-x86_64-server-optional-6 = myown-rhel-6-optional-x86_64
+rhel-x86_64-server-5 = myown-rhel-5-x86_64
+rhel-x86_64-server-cluster-5 = myown-rhel-5-ha-x86_64
+rhel-x86_64-server-productivity-5 = myown-rhel-5-optional-x86_64
+
+[ChanSuffixMap]
+rhel-x86_64-server-5 = R5-64
+rhel-x86_64-server-cluster-5 = R5-64-ha
+rhel-x86_64-server-productivity-5 = R5-64-optional
+rhel-x86_64-server-6 = R6-64
+rhel-x86_64-server-ha-6 = R6-64-ha
+rhel-x86_64-server-optional-6 = R6-64-optional
+
