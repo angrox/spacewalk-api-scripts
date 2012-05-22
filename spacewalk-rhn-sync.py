@@ -69,12 +69,11 @@ class ProxiedTransport(xmlrpclib.Transport):
 
 
 def rhnget(chan, filename, options):
-    dir="/tmp"
-    if os.path.exists("%s/%s" % (dir, filename)):
+    if os.path.exists("%s/%s" % (options.download_dir, filename)):
         if options.verbose:
             print "  - File %s already downloaded" % filename
         return "%s/%s" % (dir, filename)
-    rhngetcmd="/usr/bin/rhnget --filter=%s --systemid=/etc/mrepo.conf.d/systemid_rhel6 rhns:///%s %s" % (filename, chan, dir)
+    rhngetcmd="/usr/bin/rhnget --filter=%s --systemid=%s rhns:///%s %s" % (filename, options.sysid_file, chan, options.download_dir)
     if options.proxy:
         proxy_def={"http_proxy": "http://%s" % proxy, "https_proxy": "http://%s" % proxy}
         rhngetproc = Popen(rhngetcmd, shell=True,stdout=PIPE, stderr=PIPE, env=proxy_def)
@@ -116,17 +115,19 @@ def parse_args():
     parser.add_option("-P", "--rhn-pass", type="string", dest="rhn_pass",
             help="RHN Password")
     parser.add_option("-f", "--config-file", type="string", dest="cfg_file",
-            help="Config file for servers, users and passwords.")
+            help="Config file for servers, users, passwords, downloaddir")
     parser.add_option("-c", "--src-channel", type="string", dest="src_channel",
             help="Source Channel Label: ie.\"rhel-x86_64-server-6\"")
+    parser.add_option("-g", "--system-id-file", type="string", dest="sysid_file",
+            help="systemid file. Can be generated with 'gensystemid' from the mrepo package")
+    parser.add_option("-d", "--download-dir", type="string", dest="download_dir",
+            help="Directory to hold the temporary downloaded rpm packages")
     parser.add_option("-b", "--begin-date", type="string", dest="bdate",
             help="Beginning Date: ie. \"1900-01-01\" (defaults to \"1900-01-01\")")
     parser.add_option("-e", "--end-date", type="string", dest="edate",
             help="Ending Date: ie. \"1900-12-31\" (defaults to TODAY)")
     parser.add_option("-i", "--publish", action="store_true", dest="publish", default=False,
-            help="Publish Errata (into destination channels)")
-    parser.add_option("-I", "--ignore-missing-packages", action="store_true", dest="ignoremissing", default=False,
-            help="Ignore Missing Packages")
+            help="Publish packages (into destination channels). Default is download-only")
     parser.add_option("-x", "--proxy", type="string", dest="proxy",
             help="Proxy server and port to use (e.g. proxy.company.com:3128)")
     parser.add_option("-v", "--verbose", action="store_true", dest="verbose", default=False)
@@ -163,13 +164,18 @@ def main():
         options.rhn_pass = config.get ('RHN', 'rhn_pass')
     if options.proxy is None:
         options.proxy = config.get ('Global', 'proxy')
-
-   
+    if options.download_dir is None:
+        options.download_dir = config.get ('Global', 'download_dir')
     chanMap = {}
 
     if options.src_channel is None:
         print "Source channel not given, aborting"
         sys.exit(2)
+
+    if options.sysid_file is None:
+        print "Missing system id file, aborting"
+        sys.exit(2)
+
     chanMap[options.src_channel] = config.get('ChanMap', options.src_channel)
 
     if options.proxy is not None:
@@ -199,7 +205,7 @@ def main():
         packages=spacewalk.channel.software.listAllPackages(spacekey, chanMap[chan])
         space_packages=[]
         for pkg in packages:
-            # TODO: Do we have take care of the epoch field? 
+            # TODO: Do we have to take care of the epoch field? 
             pkg_file_name="%s-%s-%s.%s.rpm" % (pkg['name'], pkg['version'], pkg['release'], pkg['arch_label'])
             if options.verbose:
                 print "  - SPACE: %s - %s" % (pkg['name'], pkg_file_name)
@@ -212,7 +218,7 @@ def main():
         packages=rhn.channel.software.listAllPackages(rhnkey, chan, date_start, date_end)
         rhn_packages=[]
         for pkg in packages:
-            # TODO: Do we have take care of the epoch field? 
+            # TODO: Do we have to take care of the epoch field? 
             pkg_file_name="%s-%s-%s.%s.rpm" % (pkg['package_name'], pkg['package_version'], pkg['package_release'], pkg['package_arch_label'])
             if options.verbose:
                 print "  - RHN: %s - %s" % (pkg['package_name'], pkg_file_name)
@@ -230,7 +236,11 @@ def main():
             local_filename=rhnget(chan, pkg, options)
             if not options.quiet:
                 print "+ Upload %s" % pkg
-            spwpush(chanMap[chan], local_filename, options)
+            if options.publish:
+                spwpush(chanMap[chan], local_filename, options)
+            else:
+                if not options.quiet:
+                    print " - No packages will be uploaded. Missing parameter -i"
         if not options.quiet:
             print "+ Done"
 
