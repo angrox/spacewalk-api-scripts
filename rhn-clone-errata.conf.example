@@ -1,5 +1,5 @@
 [Global]
-proxy = 10.158.0.79:80
+proxy = <proxy>:<port>
 download_dir = /tmp
 
 [Spacewalk]
