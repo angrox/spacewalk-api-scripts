@@ -1,5 +1,6 @@
 [Global]
 proxy = 10.158.0.79:80
+download_dir = /tmp
 
 [Spacewalk]
 spw_server = spacewalk.example.com
