@@ -55,7 +55,7 @@ You can copy the systemid to a location suiteable for you, for example /etc/rhn/
 
 In addition a /etc/sysconfig/rhn/up2date-uuid file needs to be generated:
 
-# UUID=$(uuidgen) ; /bin/echo -e "uuid[comment]=Universally Unique ID for this server\nrhnuuid=$UUID" > /etc/sysconfig/rhn/up2date-uuid
+UUID=$(uuidgen) ; /bin/echo -e "uuid[comment]=Universally Unique ID for this server\nrhnuuid=$UUID" > /etc/sysconfig/rhn/up2date-uuid
 
 Note that you need to generate a own systemid file for each distribution! 
 
