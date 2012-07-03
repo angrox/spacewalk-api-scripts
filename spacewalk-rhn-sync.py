@@ -135,7 +135,6 @@ def main():
     # Get the options
     options = parse_args()
     # read the config
-    config = ConfigParser.ConfigParser()
     if options.cfg_file is None:
         print "Need a configurations file!"
         print "Try use the --help option!"
