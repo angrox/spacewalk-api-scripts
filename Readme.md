@@ -12,3 +12,5 @@ Scripts
 -------
 * spacewalk-rhn-sync -- Sync packages from the Red Hat Network and pushes it to the spacewalk server. Uses mrepo! 
 * spacewalk-orgclone-channel -- Clones a channel and its errata to a new channel. This works even if the channel is shared from another organization.
+* spacewalk-create-yumrepo -- Creates a yum repository out of an spacewalk channel
+* uln-clone-errata -- Fetches errata information for oracles "unbreakable" red hat clone and pushes it into spacewalk
