@@ -1,5 +1,7 @@
 #!/bin/bash
 
+CONFIG="/etc/rhn/spacewalk-orgclone.conf"
+YUMREPO_DIR="/var/satellite/repos"
 
 if [ -z "$1" -o -z "$2" ]
 then
@@ -14,9 +16,9 @@ childs=`spacecmd -u admin softwarechannel_listchildchannels $parent`
 
 new_parent="$parent-baseline"
 echo "+ Cloning Channel $parent to $new_parent"
-spacewalk-orgclone-channel.py -f /etc/rhn/spacewalk-mia-orgclone.conf --create -g "$2" -c $parent -d $new_parent 
+spacewalk-orgclone-channel.py -f $CONFIG --create -g "$2" -c $parent -d $new_parent 
 echo "+ Export Channel to yum repo"
-spacewalk-create-yumrepo.py -f /etc/rhn/spacewalk-mia-orgclone.conf -c $new_parent -d /app/appdata/repositories/$new_parent
+spacewalk-create-yumrepo.py -f $CONFIG -c $new_parent -d /app/appdata/repositories/$new_parent
 echo "+ Creating metadata for channel"
 createrepo /app/appdata/repositories/$new_parent
 
@@ -25,10 +27,10 @@ do
     echo "+ Doing $child (cloning, yum generating, createrepo)"
     new_child="$child-baseline"
     echo "  - Clone Packages and errata"
-    spacewalk-orgclone-channel.py -f /etc/rhn/spacewalk-mia-orgclone.conf --create -g "$2" -e $new_parent -c $child -d $new_child 
-    echo "  - Link packages to /app/appdata/repositories/"
-    spacewalk-create-yumrepo.py -f /etc/rhn/spacewalk-mia-orgclone.conf -c $new_child -d /app/appdata/repositories/$new_child
+    spacewalk-orgclone-channel.py -f $CONFIG --create -g "$2" -e $new_parent -c $child -d $new_child 
+    echo "  - Link packages to $YUMREPO_DIR"
+    spacewalk-create-yumrepo.py -f $CONFIG -c $new_child -d $YUMREPO_DIR/$new_child
     echo "  - Create yum repo "
-    createrepo /app/appdata/repositories/$new_child
+    createrepo $YUMREPO_DIR/$new_child
 done
 
