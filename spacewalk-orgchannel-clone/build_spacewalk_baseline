@@ -18,9 +18,9 @@ new_parent="$parent-baseline"
 echo "+ Cloning Channel $parent to $new_parent"
 spacewalk-orgclone-channel.py -f $CONFIG --create -g "$2" -c $parent -d $new_parent 
 echo "+ Export Channel to yum repo"
-spacewalk-create-yumrepo.py -f $CONFIG -c $new_parent -d /app/appdata/repositories/$new_parent
+spacewalk-create-yumrepo.py -f $CONFIG -c $new_parent -d $YUMREPO_DIR/$new_parent
 echo "+ Creating metadata for channel"
-createrepo /app/appdata/repositories/$new_parent
+createrepo $YUMREPO_DIR/$new_parent
 
 for child in $childs
 do
