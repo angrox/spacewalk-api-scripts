@@ -137,9 +137,13 @@ def main():
         except:
             print "Could not read config file %s.  Try -h for help" % options.cfg_file
             sys.exit(1)
-        spw_server = config.get ('Spacewalk', 'spw_server')
-        spw_user = config.get ('Spacewalk', 'spw_user')
-        spw_pass = config.get ('Spacewalk', 'spw_pass')
+        try: 
+            spw_server = config.get ('Spacewalk', 'spw_server')
+            spw_user = config.get ('Spacewalk', 'spw_user')
+            spw_pass = config.get ('Spacewalk', 'spw_pass')
+        except: 
+            print "The file %s seems not to be a valid config file." % options.cfg_file
+            sys.exit(1)
     else:
         print "Options -f (Configfile) not given! Try -h for help"
         sys.exit(1)
