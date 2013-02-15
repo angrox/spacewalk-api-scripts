@@ -102,7 +102,12 @@ def check_package(spacewalk, spacekey, entry, packagename):
     if not checked:
         print "- Package %s on system %s is up to date (%s-%s)" % (latest["name"], entry["name"], latest["version"], latest["release"] )
     else:
-        print "- Package %s on system %s is OLDER (%s-%s vs %s-%s)" % (latest["name"], entry["name"], found_entry["version"], found_entry["release"], latest["version"], latest["release"])
+        errata=spacewalk.packages.listProvidingErrata(spacekey, latest["id"])
+        if errata is not None:
+            errata_txt="errata %s (%s)" % ( errata[1]["advisory"], errata[1]["type"] )
+        else:
+            errata_txt="no errata"
+        print "- Package %s on system %s is OLDER (%s-%s vs %s-%s), %s" % (latest["name"], entry["name"], found_entry["version"], found_entry["release"], latest["version"], latest["release"], errata_txt)
        
 
 
@@ -117,14 +122,16 @@ def check_channel_package(spacewalk, spacekey, entry, packagename, channelentry)
     else:
         print "- Could not check version on system %s." % entry["name"]
     if LooseVersion(sysversion) < LooseVersion(channelentry):
-        print "- Package %s on system %s is OLDER (%s vs %s)" % (packagename, entry["name"], sysversion, channelentry)
+        errata=spacewalk.packages.listProvidingErrata(spacekey, found_entry["id"])
+        if errata is not None:
+            errata_txt="errata %s (%s)" % ( errata[1]["advisory"], errata[1]["type"] )
+        else:
+            errata_txt="no errata"
+        print "- Package %s on system %s is OLDER (%s vs %s), %s" % (packagename, entry["name"], sysversion, channelentry, errata_txt)
     else:
         print "- Package %s on system %s is up to date (%s)" % (packagename, entry["name"], sysversion)
-        
-    
 
 
-        
 
 def main():         
     # Get the options
