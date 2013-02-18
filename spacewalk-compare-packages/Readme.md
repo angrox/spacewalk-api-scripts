@@ -11,6 +11,7 @@ systems available.
 Usage
 -----
 
+<pre>
 usage: spacewalk-compare-packges.py [options]
 
 options:
@@ -31,12 +32,14 @@ options:
   -r RELEASE, --release=RELEASE
                         [OPTIONAL] Check only a specific release. Values are:
                         5, 6
+<pre>
 
-
-The configuration file must be parseable bei ConfigParser:
+The configuration file must be parseable bei ConfigParser:<br>
 Example: 
 
+<pre>
 [Spacewalk]
 spw_server = spacewalk.example.com
 spw_user   = api_user_1
 spw_pass   = api_password_1
+</pre>
