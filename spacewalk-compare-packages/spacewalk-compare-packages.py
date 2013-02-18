@@ -1,5 +1,4 @@
 #!/usr/bin/python
-# Script that creates a new channel and merges data 
 #
 # Author: Martin Zehetmayer <angrox@idle.at>
 #

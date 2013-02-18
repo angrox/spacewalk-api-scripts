@@ -1,8 +1,15 @@
+spacewalk-compare-packages.py 
+=============================
+
 What is this script for? 
+------------------------
 
 This script checks if there is a newer version of a package for specific 
 systems available.
 
+
+Usage
+-----
 
 usage: spacewalk-compare-packges.py [options]
 
