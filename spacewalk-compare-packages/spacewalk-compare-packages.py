@@ -1,5 +1,6 @@
 #!/usr/bin/python
 #
+# Compares packages in Spacewalk
 # Author: Martin Zehetmayer <angrox@idle.at>
 #
 # This library is free software; you can redistribute it and/or
@@ -68,7 +69,7 @@ from distutils.version import LooseVersion
 def parse_args():
     parser = OptionParser()
     parser.add_option("-f", "--config-file", type="string", dest="cfg_file",
-            help="Config file for servers, users, passwords")
+            help="Config file for servers, users, passwords. Defaults to '/etc/rhn/rhn-api-user.conf'")
     parser.add_option("-p", "--package", type="string", dest="package",
             help="Package name, ex: bash")
     parser.add_option("-s", "--system", type="string", dest="system",
@@ -111,10 +112,15 @@ def check_package(spacewalk, spacekey, entry, packagename):
 
 
 def check_channel_package(spacewalk, spacekey, entry, packagename, channelentry):
-    for package in spacewalk.system.listPackages(spacekey, entry["id"]):
+    found_entry=None
+    sys_packages=spacewalk.system.listPackages(spacekey, entry["id"])
+    for package in sys_packages:
         if package["name"] == packagename:
             found_entry=package
             break
+    if found_entry is None:
+        print ". Package %s not found on %s" % (packagename, entry["name"])
+        return
     m=re.search("(.*)\.el\d", "%s-%s" % (found_entry["version"], found_entry["release"]))
     if m is not None:
         sysversion=m.group(1)
@@ -136,22 +142,20 @@ def main():
     # Get the options
     options = parse_args()
     # read the config
-    if options.cfg_file: 
-        config = ConfigParser.ConfigParser()
-        try:
-            config.read (options.cfg_file) 
-        except:
-            print "Could not read config file %s.  Try -h for help" % options.cfg_file
-            sys.exit(1)
-        try: 
-            spw_server = config.get ('Spacewalk', 'spw_server')
-            spw_user = config.get ('Spacewalk', 'spw_user')
-            spw_pass = config.get ('Spacewalk', 'spw_pass')
-        except: 
-            print "The file %s seems not to be a valid config file." % options.cfg_file
-            sys.exit(1)
-    else:
-        print "Options -f (Configfile) not given! Try -h for help"
+    if options.cfg_file is None:
+        options.cfg_file="/etc/rhn/rhn-api-user.conf"
+    config = ConfigParser.ConfigParser()
+    try:
+        config.read (options.cfg_file) 
+    except:
+        print "Could not read config file %s.  Try -h for help" % options.cfg_file
+        sys.exit(1)
+    try: 
+        spw_server = config.get ('Spacewalk', 'spw_server')
+        spw_user = config.get ('Spacewalk', 'spw_user')
+        spw_pass = config.get ('Spacewalk', 'spw_pass')
+    except: 
+        print "The file %s seems not to be a valid config file." % options.cfg_file
         sys.exit(1)
 
     if options.system is None or options.package is None:
