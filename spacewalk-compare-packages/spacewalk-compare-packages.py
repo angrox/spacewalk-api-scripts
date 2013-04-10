@@ -97,21 +97,26 @@ def check_package(spacewalk, spacekey, entry, packagename):
     except: 
         print ". No package information for package %s on system %s found." % (packagename, entry["name"])
         return
-    checked=spacewalk.system.listOlderInstalledPackages(spacekey, entry["id"], latest["name"],latest["version"], latest["release"], latest["epoch"])
-    laversionstring="%s-%s" % (latest["version"], latest["release"])
+    
+    try: 
+        checked=spacewalk.system.listOlderInstalledPackages(spacekey, entry["id"], latest["name"],latest["version"], latest["release"], latest["epoch"])
+    except:
+        print ". Could not find channel package for system %s (installed version: %s-%s)" % (entry["name"], latest["version"], latest["release"])
+        return
+
     if not checked:
         print "- Package %s on system %s is up to date (%s-%s)" % (latest["name"], entry["name"], latest["version"], latest["release"] )
     else:
         errata=spacewalk.packages.listProvidingErrata(spacekey, latest["id"])
         if errata is not None:
-            errata_txt="errata %s (%s)" % ( errata[1]["advisory"], errata[1]["type"] )
+            errata_txt="latest errata %s (%s)" % ( errata[1]["advisory"], errata[1]["type"] )
         else:
             errata_txt="no errata"
         print "- Package %s on system %s is OLDER (%s-%s vs %s-%s), %s" % (latest["name"], entry["name"], found_entry["version"], found_entry["release"], latest["version"], latest["release"], errata_txt)
        
 
 
-def check_channel_package(spacewalk, spacekey, entry, packagename, channelentry):
+def check_channel_package(spacewalk, spacekey, entry, packagename, chpkg):
     found_entry=None
     sys_packages=spacewalk.system.listPackages(spacekey, entry["id"])
     for package in sys_packages:
@@ -120,18 +125,26 @@ def check_channel_package(spacewalk, spacekey, entry, packagename, channelentry)
             break
     if found_entry is None:
         print ". Package %s not found on %s" % (packagename, entry["name"])
-        return
+        return  
+    m=re.search("(.*)\.el\d", "%s-%s" % (chpkg["version"], chpkg["release"]))
+    # Version string of package in channel
+    if m is not None:
+        channelentry=m.group(1)
+    else:
+        print "- Could not get version of channel package" % entry["name"]
+    # Version string of installed package
     m=re.search("(.*)\.el\d", "%s-%s" % (found_entry["version"], found_entry["release"]))
     if m is not None:
         sysversion=m.group(1)
     else:
         print "- Could not check version on system %s." % entry["name"]
+    # Compare versions
     if LooseVersion(sysversion) < LooseVersion(channelentry):
-        errata=spacewalk.packages.listProvidingErrata(spacekey, found_entry["id"])
-        if errata is not None:
-            errata_txt="errata %s (%s)" % ( errata[1]["advisory"], errata[1]["type"] )
+        errata=spacewalk.packages.listProvidingErrata(spacekey, chpkg["id"])
+        if errata is not None and len(errata)!=0:
+            errata_txt="latest errata %s (%s)" % ( errata[1]["advisory"], errata[1]["type"] )
         else:
-            errata_txt="no errata"
+            errata_txt="no errata found"
         print "- Package %s on system %s is OLDER (%s vs %s), %s" % (packagename, entry["name"], sysversion, channelentry, errata_txt)
     else:
         print "- Package %s on system %s is up to date (%s)" % (packagename, entry["name"], sysversion)
@@ -200,11 +213,11 @@ def main():
                     print ". Release mismatch for system %s" % entry["name"]
                     continue
             if options.channel is not None:
-                check_channel_package(spacewalk, spacekey, entry, options.package, channelentry)
+                check_channel_package(spacewalk, spacekey, entry, options.package, chpkg)
             else: 
                 check_package(spacewalk, spacekey, entry, options.package)
     else:
-        print "No system(s) found" % options.system
+        print "No system(s) found (given arg: %s)" % options.system
         spacewalk.auth.logout(spacekey)
         sys.exit(1)
     spacewalk.auth.logout(spacekey)
