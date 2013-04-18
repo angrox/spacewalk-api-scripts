@@ -27,13 +27,6 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #
-# Version Information: 
-#
-# 0.1 - 2012-05-22 - Martin Zehetmayer
-#
-#       Initial release. Ugly code. But hey - it works! :) 
-#
-#
 
 
 import xmlrpclib
@@ -156,7 +149,10 @@ def main():
     if options.rhn_pass is None:
         options.rhn_pass = config.get ('RHN', 'rhn_pass')
     if options.proxy is None:
-        options.proxy = config.get ('Global', 'proxy')
+        try:
+            options.proxy = config.get ('Global', 'proxy')
+        except:
+            pass
     if options.download_dir is None:
         options.download_dir = config.get ('Global', 'download_dir')
     chanMap = {}
