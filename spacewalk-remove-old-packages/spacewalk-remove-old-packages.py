@@ -131,7 +131,7 @@ def main():
         for pkg in allpkgs:
             if not cmp_dictarray(newpkgs, pkg['id']):
                 print "Marked:  %s-%s-%s (id %s)" % (pkg['name'], pkg['version'], pkg['release'], pkg['id'])
-                to_delete.append(pkg)
+                to_delete.update(pkg)
                 to_delete_ids.append(pkg['id'])
         print "Packages to remove: %s" % len(to_delete)
         print "Removing packages from channel..."
