@@ -116,8 +116,7 @@ def main():
     spacewalk = xmlrpclib.Server("https://%s/rpc/api" % options.spw_server, verbose=0)
     spacekey = spacewalk.auth.login(options.spw_user, options.spw_pass)
    
-    # init to_delete and yes, it's a dict!
-    to_delete={}
+    to_delete=[]
     to_delete_ids=[]
     # get all packages
     if options.wo_channel is None: 
@@ -131,7 +130,7 @@ def main():
         for pkg in allpkgs:
             if not cmp_dictarray(newpkgs, pkg['id']):
                 print "Marked:  %s-%s-%s (id %s)" % (pkg['name'], pkg['version'], pkg['release'], pkg['id'])
-                to_delete.update(pkg)
+                to_delete.append(pkg)
                 to_delete_ids.append(pkg['id'])
         print "Packages to remove: %s" % len(to_delete)
         print "Removing packages from channel..."
@@ -143,6 +142,7 @@ def main():
     if len(to_delete) > 0:
         if options.dryrun is None:
             if options.wo_channel is None:
+                print "Remove packages from Channel %s" % options.channel
                 ret = spacewalk.channel.software.removePackages(spacekey, options.channel, to_delete_ids)
         elif options.wo_channel is None:
             print "Dryrun: Remove the packages from channel %s" % options.channel
@@ -151,8 +151,11 @@ def main():
             if options.dryrun is not None:
                 print "Dryrun: - Delete package %s-%s-%s (ID: %s)" % (pkg['name'], pkg['version'], pkg['release'], pkg['id'])
             else:
-                ret = spacewalk.packages.removePackage(spacekey, pkg['id'])
                 print "Deleting package %s-%s-%s (ID: %s)" % (pkg['name'], pkg['version'], pkg['release'],pkg['id'])
+                try: 
+                    ret = spacewalk.packages.removePackage(spacekey, pkg['id'])
+                except: 
+                    print "  - Could not delete package from spacewalk"
                 if ret != 1:
                     print " - Could not delete package %s-%s-%s (ID: %s)" % (pkg['name'], pkg['version'], pkg['release'],pkg['id'])
             
