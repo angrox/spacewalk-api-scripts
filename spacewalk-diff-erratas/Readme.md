@@ -1,7 +1,11 @@
+spacewalk-diff-erratas.py
+===
+
+
 This script checks if there is a newer version of a package for specific 
 systems available.
 
-
+<pre>
  usage: spacewalk-diff-erratas.py [options]
 
  options:
@@ -22,13 +26,17 @@ systems available.
    -r RELEASE, --release=RELEASE
                          [OPTIONAL] Check only a specific release. Values are:
                          5, 6
+
+</pre>
  
 
 The configuration file must be parseable bei ConfigParser:
 Example: 
 
+<pre>
 [Spacewalk]
 spw_server = spacewalk.example.com
 spw_user   = api_user_1
 spw_pass   = api_password_1
+</pre>
 
