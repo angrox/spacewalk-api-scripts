@@ -142,7 +142,7 @@ def check_channel_package(spacewalk, spacekey, entry, packagename, chpkg):
     if LooseVersion(sysversion) < LooseVersion(channelentry):
         errata=spacewalk.packages.listProvidingErrata(spacekey, chpkg["id"])
         if errata is not None and len(errata)!=0:
-            errata_txt="latest errata %s (%s)" % ( errata[1]["advisory"], errata[1]["type"] )
+            errata_txt="latest errata %s (%s)" % ( errata[len(errata)-1]["advisory"], errata[len(errata)-1]["type"] )
         else:
             errata_txt="no errata found"
         print "- Package %s on system %s is OLDER (%s vs %s), %s" % (packagename, entry["name"], sysversion, channelentry, errata_txt)
