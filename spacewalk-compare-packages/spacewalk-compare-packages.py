@@ -71,7 +71,7 @@ def parse_args():
     parser.add_option("-f", "--config-file", type="string", dest="cfg_file",
             help="Config file for servers, users, passwords. Defaults to '/etc/rhn/rhn-api-user.conf'")
     parser.add_option("-p", "--package", type="string", dest="package",
-            help="Package name, ex: bash")
+            help="Package name (ex: bash) or \"all\" for all packages")
     parser.add_option("-s", "--system", type="string", dest="system",
             help="Name of the System or \"all\" for all systems. Regex can be "
             "used to specify more than one server, ex. webserver*")
@@ -193,10 +193,8 @@ def main():
             sys.exit(1)
         for chpkg in channelpackages:
             if chpkg["name"] == options.package:
-                print "Package found in channel"
                 m=re.search("(.*)\.el\d", "%s-%s" % (chpkg["version"], chpkg["release"]))
                 if m is not None:
-                    channelentry=m.group(1)
                     break
         
   
@@ -215,7 +213,11 @@ def main():
             if options.channel is not None:
                 check_channel_package(spacewalk, spacekey, entry, options.package, chpkg)
             else: 
-                check_package(spacewalk, spacekey, entry, options.package)
+                if options.package == "all":
+                    for syspkg in spacewalk.system.listPackages(spacekey, entry["id"]):
+                        check_package(spacewalk, spacekey, entry, syspkg["name"])
+                else:
+                    check_package(spacewalk, spacekey, entry, options.package)
     else:
         print "No system(s) found (given arg: %s)" % options.system
         spacewalk.auth.logout(spacekey)
