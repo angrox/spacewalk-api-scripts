@@ -4,8 +4,11 @@ spacewalk-compare-packages.py
 What is this script for? 
 ------------------------
 
- This script deletes all old packages from one channel and - if wanted - 
- deletes the files from storage as well. 
+ This script deletes all old packages from one channel or deletes packages
+ without channel. 
+
+ To remove the packages from the filesystem you must use spacewalk-data-fsck
+ afterwards (-r option).
 
  BE CAREFUL WITH THIS SCRIPT! TEST IT BEFORE USING IT IN PRODUCTION!
  I must point again at the "WITHOUT ANY WARRANTY" line :-)
