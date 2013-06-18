@@ -77,8 +77,10 @@ def parse_args():
             help="Config file for servers, users, passwords")
     parser.add_option("-c", "--channel", type="string", dest="channel",
             help="Channel Label: ie.\"lhm-rhel-6-x86_64\"")
-    parser.add_option("-w", "--without_channels", action="store_true", dest="wo_channel",
+    parser.add_option("-w", "--without-channels", action="store_true", dest="wo_channel",
             help="Delete packages without channel. Overwrites the channel option")
+    parser.add_option("-l", "--with-lucene-search", type="string", dest="lucene",
+            help="Search packages with the lucene search syntax (see the spacewalk/satellite documentation - API - packages.search - advanced) and tries to delete them")
     parser.add_option("-n", "--dryrun", action="store_true", dest="dryrun",
             help="No Change is actually made, only print what would be done")
     (options,args) = parser.parse_args()
@@ -109,17 +111,17 @@ def main():
         if options.spw_pass is None:
             options.spw_pass = config.get ('Spacewalk', 'spw_pass')
 
-    if options.channel is None and options.wo_channel is None:
+    if options.channel is None and options.wo_channel is None and options.lucene is None:
         print "Channel not given, aborting"
         sys.exit(2)
 
-    spacewalk = xmlrpclib.Server("https://%s/rpc/api" % options.spw_server, verbose=0)
+    spacewalk = xmlrpclib.Server("https://%s/rpc/api" % options.spw_server, verbose=0, allow_none=True)
     spacekey = spacewalk.auth.login(options.spw_user, options.spw_pass)
    
     to_delete=[]
     to_delete_ids=[]
     # get all packages
-    if options.wo_channel is None: 
+    if options.wo_channel is None and options.lucene is None: 
         print "Getting all packages"
         allpkgs = spacewalk.channel.software.listAllPackages(spacekey, options.channel)
         print " - Amount: %d" % len(allpkgs)
@@ -134,10 +136,15 @@ def main():
                 to_delete_ids.append(pkg['id'])
         print "Packages to remove: %s" % len(to_delete)
         print "Removing packages from channel..."
-    else:
+
+    if options.wo_channel is not None:
         print "Getting all packages without channel"
-        lostpkgs = spacewalk.channel.software.listPackagesWithoutChannel(spacekey)
-        to_delete=lostpkgs
+        to_delete = spacewalk.channel.software.listPackagesWithoutChannel(spacekey)
+        print " - Amount: %d" % len(to_delete)
+    if options.lucene is not None:
+        print "Getting all packages which match %s" % options.lucene
+        to_delete = spacewalk.packages.search.advanced(spacekey, options.lucene)
+        print " - Amount: %d" % len(to_delete)
 
     if len(to_delete) > 0:
         if options.dryrun is None:
