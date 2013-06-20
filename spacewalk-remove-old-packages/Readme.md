@@ -1,5 +1,5 @@
-spacewalk-compare-packages.py 
-=============================
+spacewalk-remove-old-packages.py
+===============================
 
 What is this script for? 
 ------------------------
