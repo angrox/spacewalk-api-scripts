@@ -16,11 +16,10 @@ Scripts
 * spacewalk-compare-packages -- Compares packages of an host for a different channel to check for updates 
 * spacewalk-clone-errata -- Clones errata from one channel to another
 * spacewalk-remove-old-packages -- Deletes packages without channel OR outdated packages from one channel
+* spacewalk-schedule-scriptrun -- Schedules a remote command for one client
 * uln-clone-errata -- Fetches errata information for oracles "unbreakable" red hat clone and pushes it into spacewalk
    -- Update 20130618: It seems this script is outdated - ULN errata comes with an XML file within the repo and spacewalk-repo-sync honors that file
 
 
 
 
-Readme.md               spacewalk-compare-packages  spacewalk-diff-erratas      spacewalk-remove-old-packages  template
-spacewalk-clone-errata  spacewalk-create-yumrepo    spacewalk-orgchannel-clone  spacewalk-rhn-sync             uln-clone-errata
