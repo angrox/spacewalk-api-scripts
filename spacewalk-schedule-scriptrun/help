@@ -1,0 +1,12 @@
+Usage: spacewalk-schedule-scriptrun.py [options]
+
+Options:
+  -h, --help            show this help message and exit
+  -f CFG_FILE, --config-file=CFG_FILE
+                        Config file for servers, users, passwords. Defaults to
+                        '/etc/rhn/rhn-api-user.conf'
+  -s SYSTEM, --system=SYSTEM
+                        System to schedule the script run
+  -r RUNID, --runid=RUNID
+                        Gets the returncode of a job. This option is mutually
+                        exclusive to all options except configfile and help
