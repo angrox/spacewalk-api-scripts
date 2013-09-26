@@ -32,7 +32,7 @@ Usage
                          Config file for servers, users, passwords
    -c CHANNEL, --channel=CHANNEL
                          Channel Label: ie."myown-rhel-6-x86_64"
-   -w, --without_channels
+   -w, --without-channels
                          Delete packages without channel. Overwrites the
                          channel option
    -n, --dryrun          No Change is actually made, only print what would be
