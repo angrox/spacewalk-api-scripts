@@ -38,6 +38,7 @@ import ConfigParser
 import optparse
 import sys
 import os
+import re
 
 from subprocess import *
 from optparse import OptionParser
@@ -78,6 +79,13 @@ def create_dst_channel(spacewalk, spacekey, options):
     channel_details=spacewalk.channel.software.getDetails(spacekey, options.src_channel)
     if 'checksum_label' not in channel_details:
       channel_details['checksum_label'] = 'sha1'
+    if channel_details['arch_name'] == 'IA-32':
+      channel_details['arch_name'] = 'ia32'
+    elif channel_details['arch_name'] == 'IA-64':
+      channel_details['arch_name'] = 'ia64'
+    dst_channel = options.dst_channel
+    if bool(re.search('^rhn', dst_channel)):
+      options.dst_channel = dst_channel.replace('rhn', 'rhel', 1)
     ret=spacewalk.channel.software.create(spacekey, \
         options.dst_channel, \
         "%s %s" % (options.channel_name_prefix, channel_details['name']), \
