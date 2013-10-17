@@ -25,7 +25,7 @@ createrepo $YUMREPO_DIR/$new_parent
 for child in $childs
 do
     echo "+ Doing $child (cloning, yum generating, createrepo)"
-    new_child="$child-baseline"
+    new_child="`echo $child | sed 's/^rhn/rhel/'`-baseline"
     echo "  - Clone Packages and errata"
     spacewalk-orgclone-channel.py -f $CONFIG --create -g "$2" -e $new_parent -c $child -d $new_child 
     echo "  - Link packages to $YUMREPO_DIR"
