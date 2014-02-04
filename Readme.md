@@ -19,6 +19,7 @@ Scripts
 * spacewalk-schedule-scriptrun -- Schedules a remote command for one client
 * uln-clone-errata -- Fetches errata information for oracles "unbreakable" red hat clone and pushes it into spacewalk
    -- Update 20130618: It seems this script is outdated - ULN errata comes with an XML file within the repo and spacewalk-repo-sync honors that file
+* spacewalk-generate-reinstall-key -- Generates a reinstall activation key for a given system
 
 
 
