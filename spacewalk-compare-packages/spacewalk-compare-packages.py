@@ -126,18 +126,21 @@ def check_channel_package(spacewalk, spacekey, entry, packagename, chpkg):
     if found_entry is None:
         print ". Package %s not found on %s" % (packagename, entry["name"])
         return  
-    m=re.search("(.*)\.el\d", "%s-%s" % (chpkg["version"], chpkg["release"]))
+
     # Version string of package in channel
-    if m is not None:
-        channelentry=m.group(1)
-    else:
+    channelentry = "%s-%s" % (chpkg["version"], chpkg["release"])
+    m=re.search("(.*)\.el\d", channelentry)
+    if m is None:
         print "- Could not get version of channel package" % entry["name"]
+        return 
+
     # Version string of installed package
-    m=re.search("(.*)\.el\d", "%s-%s" % (found_entry["version"], found_entry["release"]))
-    if m is not None:
-        sysversion=m.group(1)
-    else:
+    sysversion = "%s-%s" % (found_entry["version"], found_entry["release"])
+    m=re.search("(.*)\.el\d", sysversion)
+    if m is None:
         print "- Could not check version on system %s." % entry["name"]
+        return 
+
     # Compare versions
     if LooseVersion(sysversion) < LooseVersion(channelentry):
         errata=spacewalk.packages.listProvidingErrata(spacekey, chpkg["id"])
