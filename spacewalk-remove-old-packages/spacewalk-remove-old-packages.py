@@ -81,6 +81,8 @@ def parse_args():
             help="Delete packages without channel. Overwrites the channel option")
     parser.add_option("-l", "--with-lucene-search", type="string", dest="lucene",
             help="Search packages with the lucene search syntax (see the spacewalk/satellite documentation - API - packages.search - advanced) and tries to delete them")
+    parser.add_option("-m", "--max", type="int",
+            help="Limit number of packages removed to MAX. Default: no limit.")
     parser.add_option("-n", "--dryrun", action="store_true", dest="dryrun",
             help="No Change is actually made, only print what would be done")
     (options,args) = parser.parse_args()
@@ -134,17 +136,20 @@ def main():
                 print "Marked:  %s-%s-%s (id %s)" % (pkg['name'], pkg['version'], pkg['release'], pkg['id'])
                 to_delete.append(pkg)
                 to_delete_ids.append(pkg['id'])
-        print "Packages to remove: %s" % len(to_delete)
         print "Removing packages from channel..."
 
     if options.wo_channel is not None:
         print "Getting all packages without channel"
         to_delete = spacewalk.channel.software.listPackagesWithoutChannel(spacekey)
-        print " - Amount: %d" % len(to_delete)
+
     if options.lucene is not None:
         print "Getting all packages which match %s" % options.lucene
         to_delete = spacewalk.packages.search.advanced(spacekey, options.lucene)
-        print " - Amount: %d" % len(to_delete)
+
+    if options.max and len(to_delete) > options.max:
+        to_delete = to_delete[:options.max]
+
+    print "Packages to remove: %s" % len(to_delete)
 
     if len(to_delete) > 0:
         if options.dryrun is None:
