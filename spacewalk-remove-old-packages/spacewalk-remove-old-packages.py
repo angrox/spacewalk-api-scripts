@@ -146,18 +146,22 @@ def main():
         print "Getting all packages which match %s" % options.lucene
         to_delete = spacewalk.packages.search.advanced(spacekey, options.lucene)
 
-    if options.max and len(to_delete) > options.max:
-        to_delete = to_delete[:options.max]
+    if options.max:
+        if len(to_delete) > options.max:
+            to_delete = to_delete[:options.max]
+        if len(to_delete_ids) > options.max:
+            to_delete_ids = to_delete_ids[:options.max]
+
 
     print "Packages to remove: %s" % len(to_delete)
 
     if len(to_delete) > 0:
         if options.dryrun is None:
             if options.wo_channel is None:
-                print "Remove packages from Channel %s" % options.channel
+                print "Removing %d packages from channel %s" % (len(to_delete_ids), options.channel)
                 ret = spacewalk.channel.software.removePackages(spacekey, options.channel, to_delete_ids)
         elif options.wo_channel is None:
-            print "Dryrun: Remove the packages from channel %s" % options.channel
+            print "Dryrun: Removing %d packages from channel %s" % (len(to_delete_ids), options.channel)
         print "Deleting packages from spacewalk (if packages could not be removed they are maybe in another channel too)"  
         for pkg in to_delete:
             if options.dryrun is not None:
