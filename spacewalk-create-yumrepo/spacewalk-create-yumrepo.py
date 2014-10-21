@@ -54,6 +54,7 @@ def parse_args():
     parser.add_option("-e", "--satdir", type="string", dest="satdir",
             help="Satellite directory. Defaults to /var/satellite")
     parser.add_option("--clean", action="store_true", default=False, dest="clean", help="Cleanup the repodata/ and the packages/ dir")
+    parser.add_option("--all", action="store_true", default=False, dest="all_packages", help="Link all packages (instead of the latest)")
     (options,args) = parser.parse_args()
     return options
 
@@ -103,7 +104,11 @@ def main():
     spacekey = spacewalk.auth.login(options.spw_user, options.spw_pass)
  
     print "Generating package links. Please be patient" 
-    for pkg in spacewalk.channel.software.listLatestPackages(spacekey, options.channel):
+    if options.all_packages:
+        link_pkgs = spacewalk.channel.software.listLatestPackages(spacekey, options.channel)
+    else:
+        link_pkgs = spacewalk.channel.software.listAllPackages(spacekey, options.channel)
+    for pkg in link_pkgs:
         det=spacewalk.packages.getDetails(spacekey, pkg['id'])
         fn=det['path'].split("/")[-1]
         if not os.path.exists("%s/packages/%s" % (options.directory, fn)):
