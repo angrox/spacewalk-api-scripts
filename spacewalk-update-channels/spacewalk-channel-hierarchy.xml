@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!-- vim:ts=4:expandtab
+-->
+<data>
+    <parent dest="rhel5" source="rhel-x86_64-server-5">
+        <child dest="rhel5networktools" source="rhn-tools-rhel-x86_64-server-5"></child>
+    </parent>
+</data>
