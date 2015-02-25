@@ -105,9 +105,9 @@ def main():
  
     print "Generating package links. Please be patient" 
     if options.all_packages:
-        link_pkgs = spacewalk.channel.software.listLatestPackages(spacekey, options.channel)
-    else:
         link_pkgs = spacewalk.channel.software.listAllPackages(spacekey, options.channel)
+    else:
+        link_pkgs = spacewalk.channel.software.listLatestPackages(spacekey, options.channel)
     for pkg in link_pkgs:
         det=spacewalk.packages.getDetails(spacekey, pkg['id'])
         fn=det['path'].split("/")[-1]
