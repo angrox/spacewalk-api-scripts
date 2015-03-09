@@ -36,6 +36,7 @@ import ConfigParser
 import optparse
 import sys
 import os
+import rpmUtils.miscutils
 
 from subprocess import *
 from optparse import OptionParser
@@ -115,6 +116,8 @@ def parse_args():
             help="Ending Date: ie. \"1900-12-31\" (defaults to TODAY)")
     parser.add_option("-i", "--publish", action="store_true", dest="publish", default=False,
             help="Publish packages (into destination channels). Default is download-only")
+    parser.add_option("-n", "--newest-only", action="store_true", dest="newest", default=False,
+            help="Download only newest packages per-repo. Default is download all.")
     parser.add_option("-x", "--proxy", type="string", dest="proxy",
             help="Proxy server and port to use (e.g. proxy.company.com:3128)")
     parser.add_option("-v", "--verbose", action="store_true", dest="verbose", default=False)
@@ -200,11 +203,30 @@ def main():
                 print "  - SPACE: %s - %s" % (pkg['name'], pkg_file_name)
             space_packages.append(pkg_file_name)
 
-
         # Get RHEL package information for a specific timeslot and compare the packages with the one already synced
         if not options.quiet:
             print "+ Checking all available packages in the Red Hat Network (%s - %s) " % (date_start, date_end)
         packages=rhn.channel.software.listAllPackages(rhnkey, chan, date_start, date_end)
+        
+        # Get only the latest version of packages from RHN.
+        if options.newest:
+            if not options.quiet:
+                print "+ Proccessing only newest available packages."
+            highdict = {}
+            for pkg in packages:
+                if (pkg['package_name'],  pkg['package_arch_label']) not in highdict:
+                    highdict[(pkg['package_name'],  pkg['package_arch_label'])] = pkg
+                else:
+                    pkg2 = highdict[(pkg['package_name'],  pkg['package_arch_label'])]
+                    if cmp(pkg['package_name'],  pkg2['package_name']) == 0:
+                        if rpmUtils.miscutils.compareEVR((pkg['package_epoch'],pkg['package_version'],pkg['package_release']),(pkg2['package_epoch'],pkg2['package_version'],pkg2['package_release'])) > 0:
+                            highdict[(pkg['package_name'],  pkg['package_arch_label'])] = pkg
+            if len(highdict):
+                packages = []
+                for pkg in highdict:
+                    packages.append(highdict[pkg])
+
+        # Confirm package isn't in SpaceWalk
         rhn_packages=[]
         for pkg in packages:
             # TODO: Do we have to take care of the epoch field? 
