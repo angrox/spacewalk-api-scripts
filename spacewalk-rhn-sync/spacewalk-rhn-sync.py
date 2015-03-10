@@ -278,7 +278,7 @@ def main():
 
         print "+ There are " + str(len(rhn_packages)) + " packages to sync."
         
-        if len(list):
+        if len(rhn_packages):
             # Sync the packages
             if not options.quiet:
                 print "+ Synchronising RHN packages."
