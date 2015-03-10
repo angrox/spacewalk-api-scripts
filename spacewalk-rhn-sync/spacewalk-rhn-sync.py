@@ -12,6 +12,8 @@
 #
 # THANKS both of you for your great work! 
 #
+# Author: Jodi Jones <venom@gen-x.co.nz> newest version download functionity.
+# Author: Jodi Jones <venom@gen-x.co.nz> RHN multithreaded download support.
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
