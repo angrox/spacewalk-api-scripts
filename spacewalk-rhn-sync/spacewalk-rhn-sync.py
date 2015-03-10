@@ -78,7 +78,7 @@ def rhnget(chan, filename, options):
     output=rhngetproc.communicate()[0]
     if rhngetproc.returncode != 0:
         if not options.quiet:
-            sys.stdout.write("  - Not succeeded\n")
+            sys.stdout.write("- Download failure " + filename + "\n")
             sys.stdout.flush()
             sys.stdout.write(output + "\n")
             sys.stdout.flush()
@@ -278,7 +278,7 @@ def main():
 
         print "+ There are " + str(len(rhn_packages)) + " packages to sync."
         
-        if len(rhn_packages):
+        if len(list):
             # Sync the packages
             if not options.quiet:
                 print "+ Synchronising RHN packages."
