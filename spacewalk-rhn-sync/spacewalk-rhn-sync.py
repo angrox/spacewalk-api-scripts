@@ -278,36 +278,37 @@ def main():
 
         print "+ There are " + str(len(rhn_packages)) + " packages to sync."
         
-        # Sync the packages
-        if not options.quiet:
-            print "+ Synchronising RHN packages."
-            if options.thread_amount > 1:
-                print "+ Setting download thread count to %d." %(options.thread_amount)
-        
-        # Create Threaded Download Queue
-        q = Queue(maxsize=0)
-        for i in range(options.thread_amount):
-            worker = threading.Thread(target=ThreadedDownload, args=(q,))
-            worker.setDaemon(True)
-            worker.start()
-        
-        for pkg in sorted(rhn_packages):
-            q.put({'pkg':pkg, 'chan':chan, 'options':options})
-        q.join()
-        
-        # Upload to SpaceWalk
-        if not options.quiet:
-            print "+ Uploading packages to SpaceWalk."
-        
-        if options.publish:
+        if len(rhn_packages):
+            # Sync the packages
+            if not options.quiet:
+                print "+ Synchronising RHN packages."
+                if options.thread_amount > 1:
+                    print "+ Setting download thread count to %d." %(options.thread_amount)
+            
+            # Create Threaded Download Queue
+            q = Queue(maxsize=0)
+            for i in range(options.thread_amount):
+                worker = threading.Thread(target=ThreadedDownload, args=(q,))
+                worker.setDaemon(True)
+                worker.start()
+            
             for pkg in sorted(rhn_packages):
-                if os.path.exists("%s/%s" % (options.download_dir, pkg)):
-                    if not options.quiet:
-                        print "+ Upload %s" % pkg
-                    if options.publish:
-                        spwpush(chanMap[chan], "%s/%s" % (options.download_dir, pkg), options)
-        else:
-            print " - No packages will be uploaded. Missing parameter -i"
+                q.put({'pkg':pkg, 'chan':chan, 'options':options})
+            q.join()
+            
+            # Upload to SpaceWalk
+            if not options.quiet:
+                print "+ Uploading packages to SpaceWalk."
+            
+            if options.publish:
+                for pkg in sorted(rhn_packages):
+                    if os.path.exists("%s/%s" % (options.download_dir, pkg)):
+                        if not options.quiet:
+                            print "+ Upload %s" % pkg
+                        if options.publish:
+                            spwpush(chanMap[chan], "%s/%s" % (options.download_dir, pkg), options)
+            else:
+                print " - No packages will be uploaded. Missing parameter -i"
         
         if not options.quiet:
             print "+ Done"
