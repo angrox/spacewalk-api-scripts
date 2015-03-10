@@ -123,7 +123,6 @@ class TimerClass(threading.Thread):
 # Threaded download function call.
 
 def ThreadedDownload(q):    
-  global t
   while True:
     tmr=None
     z = q.get()
