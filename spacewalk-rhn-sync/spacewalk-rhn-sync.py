@@ -28,7 +28,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #
 
-
 import xmlrpclib
 import httplib
 import datetime
@@ -37,11 +36,16 @@ import optparse
 import sys
 import os
 import rpmUtils.miscutils
+import threading
+import time
+
+from Queue import Queue
+from operator import itemgetter
 
 from subprocess import *
 from optparse import OptionParser
 
-
+#################################################################################################################################################################################
 
 class ProxiedTransport(xmlrpclib.Transport):
     def set_proxy(self, proxy):
@@ -55,11 +59,13 @@ class ProxiedTransport(xmlrpclib.Transport):
     def send_host(self, connection, host):
         connection.putheader('Host', self.realhost)
 
+#################################################################################################################################################################################
 
 def rhnget(chan, filename, options):
     if os.path.exists("%s/%s" % (options.download_dir, filename)):
         if options.verbose:
-            print "  - File %s already downloaded" % filename
+            sys.stdout.write("  - File " + filename + " already downloaded\n")
+            sys.stdout.flush()
         return "%s/%s" % (options.download_dir, filename)
     rhngetcmd="/usr/bin/rhnget --filter=%s --systemid=%s rhns:///%s %s" % (filename, options.sysid_file, chan, options.download_dir)
     if options.proxy:
@@ -70,10 +76,13 @@ def rhnget(chan, filename, options):
     output=rhngetproc.communicate()[0]
     if rhngetproc.returncode != 0:
         if not options.quiet:
-            print "  - Not succeeded"
-            print output
+            sys.stdout.write("  - Not succeeded\n")
+            sys.stdout.flush()
+            sys.stdout.write(output + "\n")
+            sys.stdout.flush()
     return "%s/%s" % (options.download_dir, filename)
 
+#################################################################################################################################################################################
 
 def spwpush(chan, local_filename, options):
     spwpushcmd="/usr/bin/rhnpush --server %s -u %s -p %s -c %s %s" % (options.spw_server, options.spw_user, options.spw_pass, chan, local_filename)
@@ -87,45 +96,73 @@ def spwpush(chan, local_filename, options):
     else:
         os.unlink(local_filename)
 
+#################################################################################################################################################################################
+# Some packages are large, and dont want to sit at the end not knowning whats going on, so announce what we are doing every 60 seconds..
+
+class TimerClass(threading.Thread):
+    def __init__(self,name):
+        threading.Thread.__init__(self)
+        self.event = threading.Event()
+        self.name = name
+        self.count=0
+
+    def run(self):
+        while not self.event.is_set():
+                if not self.count:
+                    sys.stdout.write("+ Synchronising " + self.name + "\n")
+                    self.count=1
+                else:
+                    sys.stdout.write("+ Still synchronising " + self.name + "\n")
+                sys.stdout.flush()
+                self.event.wait(60)
+
+    def stop(self):
+        self.event.set()
+
+#################################################################################################################################################################################
+# Threaded download function call.
+
+def ThreadedDownload(q):    
+  global t
+  while True:
+    tmr=None
+    z = q.get()
+    if not z['options'].quiet:
+        tmr = TimerClass(z['pkg'])
+        tmr.start()
+    local_filename=rhnget(z['chan'], z['pkg'], z['options'])
+    if tmr:
+        tmr.stop()
+    q.task_done()
+    
+
+#################################################################################################################################################################################
 
 def parse_args():
     parser = OptionParser()
-    parser.add_option("-s", "--spw-server", type="string", dest="spw_server",
-            help="Spacewalk Server")
-    parser.add_option("-S", "--rhn-server", type="string", dest="rhn_server",
-            help="RHN Server (rhn.redhat.com)")
-    parser.add_option("-u", "--spw-user", type="string", dest="spw_user",
-            help="Spacewalk User")
-    parser.add_option("-p", "--spw-pass", type="string", dest="spw_pass",
-            help="Spacewalk Password")
-    parser.add_option("-U", "--rhn-user", type="string", dest="rhn_user",
-            help="RHN User")
-    parser.add_option("-P", "--rhn-pass", type="string", dest="rhn_pass",
-            help="RHN Password")
-    parser.add_option("-f", "--config-file", type="string", dest="cfg_file",
-            help="Config file for servers, users, passwords, downloaddir")
-    parser.add_option("-c", "--src-channel", type="string", dest="src_channel",
-            help="Source Channel Label: ie.\"rhel-x86_64-server-6\"")
-    parser.add_option("-g", "--system-id-file", type="string", dest="sysid_file",
-            help="systemid file. Can be generated with 'gensystemid' from the mrepo package")
-    parser.add_option("-d", "--download-dir", type="string", dest="download_dir",
-            help="Directory to hold the temporary downloaded rpm packages")
-    parser.add_option("-b", "--begin-date", type="string", dest="bdate",
-            help="Beginning Date: ie. \"1900-01-01\" (defaults to \"1900-01-01\")")
-    parser.add_option("-e", "--end-date", type="string", dest="edate",
-            help="Ending Date: ie. \"1900-12-31\" (defaults to TODAY)")
-    parser.add_option("-i", "--publish", action="store_true", dest="publish", default=False,
-            help="Publish packages (into destination channels). Default is download-only")
-    parser.add_option("-n", "--newest-only", action="store_true", dest="newest", default=False,
-            help="Download only newest packages per-repo. Default is download all.")
-    parser.add_option("-x", "--proxy", type="string", dest="proxy",
-            help="Proxy server and port to use (e.g. proxy.company.com:3128)")
+    parser.add_option("-s", "--spw-server", type="string", dest="spw_server", help="Spacewalk Server")
+    parser.add_option("-S", "--rhn-server", type="string", dest="rhn_server", help="RHN Server (rhn.redhat.com)")
+    parser.add_option("-u", "--spw-user", type="string", dest="spw_user", help="Spacewalk User")
+    parser.add_option("-p", "--spw-pass", type="string", dest="spw_pass", help="Spacewalk Password")
+    parser.add_option("-U", "--rhn-user", type="string", dest="rhn_user", help="RHN User")
+    parser.add_option("-P", "--rhn-pass", type="string", dest="rhn_pass", help="RHN Password")
+    parser.add_option("-f", "--config-file", type="string", dest="cfg_file", help="Config file for servers, users, passwords, downloaddir")
+    parser.add_option("-c", "--src-channel", type="string", dest="src_channel", help="Source Channel Label: ie.\"rhel-x86_64-server-6\"")
+    parser.add_option("-g", "--system-id-file", type="string", dest="sysid_file", help="systemid file. Can be generated with 'gensystemid' from the mrepo package")
+    parser.add_option("-d", "--download-dir", type="string", dest="download_dir", help="Directory to hold the temporary downloaded rpm packages")
+    parser.add_option("-b", "--begin-date", type="string", dest="bdate", help="Beginning Date: ie. \"1900-01-01\" (defaults to \"1900-01-01\")")
+    parser.add_option("-e", "--end-date", type="string", dest="edate", help="Ending Date: ie. \"1900-12-31\" (defaults to TODAY)")
+    parser.add_option("-i", "--publish", action="store_true", dest="publish", default=False, help="Publish packages (into destination channels). Default is download-only")
+    parser.add_option("-n", "--newest-only", dest="newest", default=False, help="Download only newest package version. Default is download all.")
+    parser.add_option("-t", "--thread", type='int', dest="thread_amount", default=1, help="Download more than (N) RHN packages at a time. Default is 1.")
+    parser.add_option("-x", "--proxy", type="string", dest="proxy", help="Proxy server and port to use (e.g. proxy.company.com:3128)")
     parser.add_option("-v", "--verbose", action="store_true", dest="verbose", default=False)
     parser.add_option("-q", "--quiet", action="store_true", dest="quiet", default=False)
 
     (options,args) = parser.parse_args()
     return options
 
+#################################################################################################################################################################################
 
 def main():         
     # Get the options
@@ -228,7 +265,7 @@ def main():
 
         # Confirm package isn't in SpaceWalk
         rhn_packages=[]
-        for pkg in packages:
+        for pkg in sorted(packages, key=itemgetter('package_name')):
             # TODO: Do we have to take care of the epoch field? 
             pkg_file_name="%s-%s-%s.%s.rpm" % (pkg['package_name'], pkg['package_version'], pkg['package_release'], pkg['package_arch_label'])
             if options.verbose:
@@ -238,23 +275,41 @@ def main():
                     print "    - We need to sync %s" % pkg_file_name
                 rhn_packages.append(pkg_file_name)
 
+        print "+ There are " + str(len(rhn_packages)) + " packages to sync."
+        
         # Sync the packages
         if not options.quiet:
-            print "+ Sync and upload the packages"
-        for pkg in rhn_packages:
-            if not options.quiet:
-                print "+ Sync %s" % pkg
-            local_filename=rhnget(chan, pkg, options)
-            if not options.quiet:
-                print "+ Upload %s" % pkg
-            if options.publish:
-                spwpush(chanMap[chan], local_filename, options)
-            else:
-                if not options.quiet:
-                    print " - No packages will be uploaded. Missing parameter -i"
+            print "+ Synchronising RHN packages."
+            if options.thread_amount > 1:
+                print "+ Setting download thread count to %d." %(options.thread_amount)
+        
+        # Create Threaded Download Queue
+        q = Queue(maxsize=0)
+        for i in range(options.thread_amount):
+            worker = threading.Thread(target=ThreadedDownload, args=(q,))
+            worker.setDaemon(True)
+            worker.start()
+        
+        for pkg in sorted(rhn_packages):
+            q.put({'pkg':pkg, 'chan':chan, 'options':options})
+        q.join()
+        
+        # Upload to SpaceWalk
+        if not options.quiet:
+            print "+ Uploading packages to SpaceWalk."
+        
+        if options.publish:
+            for pkg in sorted(rhn_packages):
+                if os.path.exists("%s/%s" % (options.download_dir, pkg)):
+                    if not options.quiet:
+                        print "+ Upload %s" % pkg
+                    if options.publish:
+                        spwpush(chanMap[chan], "%s/%s" % (options.download_dir, pkg), options)
+        else:
+            print " - No packages will be uploaded. Missing parameter -i"
+        
         if not options.quiet:
             print "+ Done"
-
 
     rhn.auth.logout(rhnkey)
     spacewalk.auth.logout(spacekey)
@@ -262,5 +317,4 @@ def main():
 
 ## MAIN
 if __name__ == "__main__":
-    main()  
-
+    main()
