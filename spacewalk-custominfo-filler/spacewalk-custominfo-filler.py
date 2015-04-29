@@ -54,7 +54,7 @@ def parseCustomInfo(sysname):
         if key == 'override':
             continue
         if re.search(val['regex'], sysname, flags=re.IGNORECASE):
-            return ( key, val['syscontact'], val['adprimary'], val['adsecondary'])
+            return ( key, val['syscontact'], val['adprimary'], val['adsecondary'], val['adtertiary'])
 
 
 def main():         
@@ -109,19 +109,20 @@ def main():
             for o_server in val['systems']:
                 if re.search(o_server, entry['name']):
                     print "- Found override information for %s" % o_server
-                    print "  - %s - %s, %s (%s), %s" % (entry['name'], val['syslocation'], val['adprimary'], val['adsecondary'], key)
-                    custominfo = {'syscontact': key, 'syslocation': val['syslocation'], 'adprimary': val['adprimary'], 'adsecondary': val['adsecondary']} 
+                    print "  - %s - %s, %s (%s, %s), %s" % (entry['name'], val['syslocation'], val['adprimary'], val['adsecondary'], val['adtertiary'], key)
+                    custominfo = {'syscontact': key, 'syslocation': val['syslocation'], 'adprimary': val['adprimary'], 'adsecondary': val['adsecondary'], 'adtertiary': val['adtertiary']} 
         if custominfo == 0:
             try: 
-                (syslocation, syscontact, adprimary, adsecondary) = parseCustomInfo(entry['name'])
-                print "- %s - %s, %s %s, (%s)" % (entry['name'], syslocation, syscontact, adprimary, adsecondary)
+                (syslocation, syscontact, adprimary, adsecondary, adtertiary) = parseCustomInfo(entry['name'])
+                print "- %s - %s, %s %s, (%s, %s)" % (entry['name'], syslocation, syscontact, adprimary, adsecondary, adtertiary)
             except:
                 print "- System %s failed! Using value 'unkown'" % entry['name']
                 syslocation = 'unknown'
                 syscontact = 'unknown'
                 adprimary = 'not.specified'
                 adsecondary = 'not.specified'
-            custominfo={'syscontact': syscontact, 'syslocation': syslocation, 'adprimary': adprimary, 'adsecondary': adsecondary} 
+                adstertiary = 'not.specified'
+            custominfo={'syscontact': syscontact, 'syslocation': syslocation, 'adprimary': adprimary, 'adsecondary': adsecondary, 'adtertiary': adtertiary} 
         ret=spacewalk.system.setCustomValues(spacekey, entry['id'], custominfo)
         if ret == 1:
             print "   - System %s successfully updated" % entry['name']
