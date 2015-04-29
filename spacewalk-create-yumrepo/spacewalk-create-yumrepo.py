@@ -34,6 +34,7 @@ import shutil
 
 from subprocess import *
 from optparse import OptionParser
+from multiprocessing import Process, Pool
 
 
 
@@ -53,12 +54,19 @@ def parse_args():
             help="Destination directory")
     parser.add_option("-e", "--satdir", type="string", dest="satdir",
             help="Satellite directory. Defaults to /var/satellite")
+    parser.add_option("--pcount", type="int", dest="pcount", default=5,
+            help="Number of parallel processes (default=5)")
     parser.add_option("--clean", action="store_true", default=False, dest="clean", help="Cleanup the repodata/ and the packages/ dir")
     parser.add_option("--all", action="store_true", default=False, dest="all_packages", help="Link all packages (instead of the latest)")
     (options,args) = parser.parse_args()
     return options
 
 
+def get_package_details(pkg_id):
+    det=spacewalk.packages.getDetails(spacekey, pkg_id)
+    fn=det['path'].split("/")[-1]
+    dpath=det['path']
+    return (fn,dpath)
         
 
 def main():         
@@ -100,7 +108,9 @@ def main():
         os.mkdir("%s/packages" % options.directory)
     if not os.path.exists("%s/repodata" % options.directory):
         os.mkdir("%s/repodata" % options.directory)
+    global spacewalk
     spacewalk = xmlrpclib.Server("https://%s/rpc/api" % options.spw_server, verbose=0)
+    global spacekey
     spacekey = spacewalk.auth.login(options.spw_user, options.spw_pass)
  
     print "Generating package links. Please be patient" 
@@ -108,15 +118,25 @@ def main():
         link_pkgs = spacewalk.channel.software.listAllPackages(spacekey, options.channel)
     else:
         link_pkgs = spacewalk.channel.software.listLatestPackages(spacekey, options.channel)
+
+    pkg_id_list=[]
     for pkg in link_pkgs:
-        det=spacewalk.packages.getDetails(spacekey, pkg['id'])
-        fn=det['path'].split("/")[-1]
+        pkg_id_list.append(pkg['id'])
+
+    pool=Pool(processes=options.pcount)
+    pkg_paths=pool.map(get_package_details, pkg_id_list)
+
+    for pkg_path in pkg_paths:
+        fn=pkg_path[0]
+        det=pkg_path[1]
         if not os.path.exists("%s/packages/%s" % (options.directory, fn)):
-            os.symlink("%s/%s" % (options.satdir, det['path']), "%s/packages/%s" % (options.directory, fn))
+            os.symlink("%s/%s" % (options.satdir, det), "%s/packages/%s" % (options.directory, fn))
+
     spacewalk.auth.logout(spacekey)
 
 
 ## MAIN
 if __name__ == "__main__":
     main()  
+
 
