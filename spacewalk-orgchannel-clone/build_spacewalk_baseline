@@ -1,36 +1,43 @@
 #!/bin/bash
 
-CONFIG="/etc/rhn/spacewalk-orgclone.conf"
-YUMREPO_DIR="/var/satellite/repos"
+CONFIG="/etc/rhn/spacewalk-orgclone-channel.conf"
 
-if [ -z "$1" -o -z "$2" ]
+SERVER=`grep spw_server $CONFIG | awk '{print $3}'`
+USER=`grep spw_user $CONFIG | awk '{print $3}'`
+PASS=`grep spw_pass $CONFIG | awk '{print $3}'`
+
+
+if [ -z "$1" -o -z "$2" -o -z "$3" ]
 then
-    echo "usage: $0 <parentchannel> <prefix>"
+    echo "usage: $0 <parentchannel> <prefix> <label-suffix>"
     echo "   prefix = prefix of Channel Name (ex. \"Baseline 2012-06-20\")"
+    echo "   label-suffix = suffix added to the channel label (ex. rhel-x86_64-server-6 -> rhel-x86_64-server-6-clone1)"
     exit 1
 fi
 
 parent=$1
+prefix=$2
+suffix=$3
 
-childs=`spacecmd -u admin softwarechannel_listchildchannels $parent`
+spacewalk-api --server=$SERVER --user=$USER --password=$PASS channel.software.listChildren "%session%" "$parent" >/dev/null 2>&1
+RET=$?
+if [ $RET != 0 ]
+then
+    echo "Unable to find channel $parent (Error Code $RET)"
+    exit 1
+fi
+childs=`spacewalk-api --server=$SERVER --user=$USER --password=$PASS channel.software.listChildren "%session%" "$parent" | grep "'label'" | awk '{print $3}' | tr -d "',"`
 
-new_parent="$parent-baseline"
+new_parent="$parent-$suffix"
 echo "+ Cloning Channel $parent to $new_parent"
-spacewalk-orgclone-channel.py -f $CONFIG --create -g "$2" -c $parent -d $new_parent 
-echo "+ Export Channel to yum repo"
-spacewalk-create-yumrepo.py -f $CONFIG -c $new_parent -d $YUMREPO_DIR/$new_parent
-echo "+ Creating metadata for channel"
-createrepo $YUMREPO_DIR/$new_parent
+spacewalk-orgclone-channel.py -f $CONFIG --create -g "$prefix" -c $parent -d $new_parent 
 
 for child in $childs
 do
-    echo "+ Doing $child (cloning, yum generating, createrepo)"
-    new_child="`echo $child | sed 's/^rhn/rhel/'`-baseline"
+    new_child="$child-$suffix"
+    echo "+ Cloning $child to $new_child" 
     echo "  - Clone Packages and errata"
-    spacewalk-orgclone-channel.py -f $CONFIG --create -g "$2" -e $new_parent -c $child -d $new_child 
-    echo "  - Link packages to $YUMREPO_DIR"
-    spacewalk-create-yumrepo.py -f $CONFIG -c $new_child -d $YUMREPO_DIR/$new_child
-    echo "  - Create yum repo "
-    createrepo $YUMREPO_DIR/$new_child
+    spacewalk-orgclone-channel.py -f $CONFIG --create -g "$prefix" -e $new_parent -c $child -d $new_child 
 done
+
 
