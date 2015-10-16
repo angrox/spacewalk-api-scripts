@@ -42,7 +42,7 @@
 #   -w, --without-channels
 #                         Delete packages without channel. Overwrites the
 #                         channel option
-#   -n, --dryrun          No Change is actually made, only print what would be
+#   -n, --dryrun          No change is actually made, only print what would be
 #                         done
 
 #
@@ -60,6 +60,7 @@ import datetime
 import ConfigParser
 import sys
 import os
+import getpass
 
 from subprocess import *
 from optparse import OptionParser
@@ -68,7 +69,7 @@ from optparse import OptionParser
 def parse_args():
     parser = OptionParser()
     parser.add_option("-s", "--spw-server", type="string", dest="spw_server",
-            help="Spacewalk Server")
+            help="Spacewalk Server (default: localhost)", default="localhost")
     parser.add_option("-u", "--spw-user", type="string", dest="spw_user",
             help="Spacewalk User")
     parser.add_option("-p", "--spw-pass", type="string", dest="spw_pass",
@@ -84,7 +85,7 @@ def parse_args():
     parser.add_option("-m", "--max", type="int",
             help="Limit number of packages removed to MAX. Default: no limit.")
     parser.add_option("-n", "--dryrun", action="store_true", dest="dryrun",
-            help="No Change is actually made, only print what would be done")
+            help="No change is actually made, only print what would be done")
     (options,args) = parser.parse_args()
     return options
 
@@ -112,6 +113,11 @@ def main():
             options.spw_user = config.get ('Spacewalk', 'spw_user')
         if options.spw_pass is None:
             options.spw_pass = config.get ('Spacewalk', 'spw_pass')
+    else:
+        #ask for username and password if emtpy
+        while str(options.spw_user) == 'None' or '': options.spw_user = raw_input("Spacewalk Username: ")
+        while str(options.spw_pass) == 'None' or '': options.spw_pass = getpass.getpass("Spacewalk Password: ")
+                
 
     if options.channel is None and options.wo_channel is None and options.lucene is None:
         print "Channel not given, aborting"
@@ -171,7 +177,7 @@ def main():
                 try: 
                     ret = spacewalk.packages.removePackage(spacekey, pkg['id'])
                 except: 
-                    print "  - Could not delete package from spacewalk"
+                    print "  - Could not delete package from Spacewalk"
                 if ret != 1:
                     print " - Could not delete package %s-%s-%s (ID: %s)" % (pkg['name'], pkg['version'], pkg['release'],pkg['id'])
             
