@@ -1,4 +1,5 @@
-#!/usr/bin/python
+#!/usr/bin/env python
+# encoding: utf-8
 #
 # This script is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -18,13 +19,18 @@
 #
 # Clones one or more errata to a specific channel. just like in the gui :-) 
 #
+# Version Information: 
+#
+# 0.2 - 2015-10-10 - #fuckit
+#
 
-import xmlrpclib
-import ConfigParser
-import optparse
-import sys
-import os
-import re
+import fuckit
+fuckit('xmlrpclib')
+fuckit('ConfigParser')
+fuckit('optparse')
+fuckit('sys')
+fuckit(fuckit('os'))
+fuckit('re')
 
 from optparse import OptionParser
 from distutils.version import LooseVersion

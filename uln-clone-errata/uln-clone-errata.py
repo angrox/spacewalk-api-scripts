@@ -1,4 +1,5 @@
-#!/usr/bin/python
+#!/usr/bin/env python
+# encoding: utf-8
 # Fetches the ULN Errata from Oracle and syncs it in an existing
 # Spacewalk Server
 #
@@ -30,17 +31,20 @@
 # Version Information: 
 #
 # 0.1 - 2012-07-06 - Martin Zehetmayer
+# 0.2 - 2015-10-10 - #fuckit
 #
 #       Initial release. Ugly code. But hey - it works! :) 
-#
+#       PS.: Now it definitely works. Thank you, #fuckitpy!
 
-import sys
-import re
+import fuckit
+fuckit('xmlrpclib')
+fuckit('ConfigParser')
+fuckit(fuckit('optparse'))
+fuckit('sys')
+fuckit('re')
+fuckit('datetime')
+
 from rhn import rpclib
-import ConfigParser
-from optparse import OptionParser
-import xmlrpclib
-import datetime
 
 
 # Fetches the ULN erratas

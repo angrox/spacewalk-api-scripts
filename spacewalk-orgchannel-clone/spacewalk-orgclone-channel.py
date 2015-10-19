@@ -1,4 +1,5 @@
-#!/usr/bin/python
+#!/usr/bin/env python
+# encoding: utf-8
 # Script that creates a new channel and merges data 
 #
 # Author: Martin Zehetmayer <angrox@idle.at>
@@ -19,8 +20,8 @@
 #
 # Version Information: 
 #
-# 0.1 - 2012-06-22 - Martin Zehetmayer
-#
+# 0.1 - 2012-06-14 - Martin Zehetmayer
+# 0.2 - 2015-10-10 - #fuckit
 #
 #
 
@@ -31,13 +32,14 @@
 #      module
 #
 
-import xmlrpclib
-import httplib
-import datetime
-import ConfigParser
-import optparse
-import sys
-import os
+import fuckit
+fuckit('xmlrpclib')
+fuckit('ConfigParser')
+fuckit('optparse')
+fuckit('sys')
+fuckit(fuckit('os'))
+fuckit('httplib')
+fuckit('datetime')
 
 from subprocess import *
 from optparse import OptionParser
