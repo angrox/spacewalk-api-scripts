@@ -1,4 +1,5 @@
-#!/usr/bin/python
+#!/usr/bin/env python
+# encoding: utf-8
 #
 # Compares packages in Spacewalk
 # Author: Martin Zehetmayer <angrox@idle.at>
@@ -52,14 +53,20 @@
 # spw_server = spacewalk.example.com
 # spw_user   = api_user_1
 # spw_pass   = api_password_1
+#
+# Version Information: 
+#
+# 0.2 - 2015-10-10 - #fuckit
+#
 
 
-import xmlrpclib
-import ConfigParser
-import optparse
-import sys
-import os
-import re
+import fuckit
+fuckit('xmlrpclib')
+fuckit('ConfigParser')
+fuckit('optparse')
+fuckit('sys')
+fuckit(fuckit('os'))
+fuckit('re')
 
 from optparse import OptionParser
 from distutils.version import LooseVersion

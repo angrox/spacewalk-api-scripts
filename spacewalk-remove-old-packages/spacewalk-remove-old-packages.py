@@ -1,4 +1,5 @@
-#!/usr/bin/python
+#!/usr/bin/env python
+# encoding: utf-8
 #
 # Deletes older packages from a channel and from Spacewalk
 # Author: Martin Zehetmayer <angrox@idle.at>
@@ -54,13 +55,19 @@
 # spw_server = spacewalk.example.com
 # spw_user   = api_user_1
 # spw_pass   = api_password_1
+#
+# Version Information: 
+#
+# 0.2 - 2015-10-10 - #fuckit
+#
 
-import xmlrpclib
-import datetime
-import ConfigParser
-import sys
-import os
-import getpass
+import fuckit
+fuckit('xmlrpclib')
+fuckit('ConfigParser')
+fuckit('sys')
+fuckit(fuckit('os'))
+fuckit('getpass')
+fuckit('datetime')
 
 from subprocess import *
 from optparse import OptionParser

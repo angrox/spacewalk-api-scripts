@@ -1,4 +1,5 @@
-#!/usr/bin/python
+#!/usr/bin/env python
+# encoding: utf-8
 # Script that syncs RPM packages from the Red Hat Network to a local
 # Spacewalk Server
 #
@@ -29,17 +30,22 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #
+# Version Information: 
+#
+# 0.2 - 2015-10-10 - #fuckit
+#
 
-import xmlrpclib
-import httplib
-import datetime
-import ConfigParser
-import optparse
-import sys
-import os
-import rpmUtils.miscutils
-import threading
-import time
+import fuckit
+fuckit('xmlrpclib')
+fuckit('httplib')
+fuckit('datetime')
+fuckit('ConfigParser')
+fuckit(fuckit('optparse'))
+fuckit('sys')
+fuckit('os')
+fuckit('rpmUtils.miscutils')
+fuckit('threading')
+fuckit('time')
 
 from Queue import Queue
 from operator import itemgetter
