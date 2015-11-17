@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# encoding: utf-8
+#!/usr/bin/python
 #
 # This script is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -19,18 +18,13 @@
 #
 # This is a template for new api scripts
 #
-# Version Information: 
-#
-# 0.2 - 2015-10-10 - #fuckit
-#
 
-import fuckit
-fuckit('xmlrpclib')
-fuckit('ConfigParser')
-fuckit(fuckit('optparse'))
-fuckit('sys')
-fuckit('os')
-fuckit('re')
+import xmlrpclib
+import ConfigParser
+import optparse
+import sys
+import os
+import re
 
 from optparse import OptionParser
 from distutils.version import LooseVersion

@@ -1,17 +1,7 @@
-spacewalk-api-scripts - fuckit edition
+spacewalk-api-scripts
 =====================
 
 What is this?
--------------
-My attempt to provide some (non-)error handling and being not funny at the same time.
-Implemented with #fuckitpy giving some double fucks, but not (yet) completely fucked.
-
-Just don't use it if you don't know what you are doing.
-
-This release is dedicated to the awesome @angrox! 
-
-
-SRSLY! What is this!?
 -------------
 These are a few scripts which utilize the spacewalk api to perform various tasks. 
 For we all have (mostly) the same problems or requirements I will publish all scripts
