@@ -23,8 +23,5 @@ pip-log.txt
 #Translations
 *.mo
 
-# OSX
-.DS_Store*
-
 #Mr Developer
 .mr.developer.cfg

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 # encoding: utf-8
 #
 # This script is free software; you can redistribute it and/or
@@ -19,19 +19,14 @@
 #
 # Pushes a file to a configuration channel in Satellite/Spacewalk
 #
-# Version Information: 
-#
-# 0.2 - 2015-10-10 - #fuckit
-#
 
-import fuckit
-fuckit('xmlrpclib')
-fuckit('ConfigParser')
-fuckit('optparse')
-fuckit('sys')
-fuckit(fuckit('os'))
-fuckit('re')
-fuckit('yaml')
+import xmlrpclib
+import ConfigParser
+import optparse
+import sys
+import os
+import re
+import yaml
 
 from optparse import OptionParser
 from distutils.version import LooseVersion

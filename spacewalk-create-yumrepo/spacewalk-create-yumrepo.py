@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# encoding: utf-8
+#!/usr/bin/python
 #
 # Author: Martin Zehetmayer <angrox@idle.at>
 #
@@ -20,17 +19,18 @@
 # Version Information: 
 #
 # 0.1 - 2012-06-14 - Martin Zehetmayer
-# 0.2 - 2015-10-10 - #fuckit
+#
 #
 #
 
-import fuckit
-fuckit('xmlrpclib')
-fuckit('ConfigParser')
-fuckit('datetime')
-fuckit('sys')
-fuckit(fuckit('os'))
-fuckit('shutil')
+#
+
+import xmlrpclib
+import datetime
+import ConfigParser
+import sys
+import os
+import shutil
 
 from subprocess import *
 from optparse import OptionParser
