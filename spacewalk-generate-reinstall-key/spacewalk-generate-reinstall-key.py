@@ -87,8 +87,14 @@ def main():
     spacewalk = xmlrpclib.Server("https://%s/rpc/api" % spw_server, verbose=0)
     spacekey = spacewalk.auth.login(spw_user,spw_pass)
 
-    
-    foundsystems = spacewalk.system.search.hostname(spacekey, options.servername)
+    # Spacewalk Search is equivalent to *servername*
+    systems = spacewalk.system.search.hostname(spacekey, options.servername)
+
+    # Search only for those servers where the name is matching ^servername
+    foundsystems = []
+    for system in systems:
+      if re.match("^(" + options.servername + ").*", system["name"]):
+        foundsystems.append(system)
 
     if len(foundsystems) == 0:
         debug("No systems found.")
