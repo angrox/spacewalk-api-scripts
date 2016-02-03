@@ -66,6 +66,8 @@ def parse_args():
             help="Create destination channel if it does not exist. All parameter (except the channel label) will deviated from the orginal channel")
     parser.add_option("-n", "--dry-run", action="store_true", dest="dryrun", default=False,
             help="Just print what would be done")
+    parser.add_option("--latest-only", action="store_true", dest="latestonly", default=False,
+            help="Only merge the latest version of the packages found in the parent channel")
     parser.add_option("-v", "--verbose", action="store_true", dest="verbose", default=False)
     parser.add_option("-q", "--quiet", action="store_true", dest="quiet", default=False)
 
@@ -191,7 +193,21 @@ def main():
     if not options.quiet:
         print "Merging packages from %s into %s" % (options.src_channel, options.dst_channel)
     if not options.dryrun:
-        mergepackages=spacewalk.channel.software.mergePackages(spacekey, options.src_channel, options.dst_channel)
+        if not options.latestonly:
+            # Merge the whole channel
+            if not options.quiet: print "- Merging the whole channel"
+            mergepackages=spacewalk.channel.software.mergePackages(spacekey, options.src_channel, options.dst_channel)
+        else:
+            # Only merge the latest channel packages
+            if not options.quiet: print "- Only merging the latest packages"
+            pkg_id_array=[]
+            newpkgs = spacewalk.channel.software.listLatestPackages(spacekey, options.src_channel)
+            for pkg in newpkgs:
+                pkg_id_array.append(pkg['id'])
+            if spacewalk.channel.software.addPackages(spacekey, options.dst_channel, pkg_id_array) != 1:
+                if not options.quiet: print "- Package add has FAILED!"
+                sys.exit(1)
+
     if not options.quiet:
         print "Merging erratas from %s into %s" % (options.src_channel, options.dst_channel)
     if not options.dryrun:
