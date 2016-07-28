@@ -6,7 +6,7 @@ This directory can be used as a yum repo directory (after issuing createrepo on 
 Usage
 -----
 <pre>
-age: spacewalk-orgclone-channel.py [options]
+Usage: spacewalk-create-yumrepo.py [options]
 
 Options:
   -h, --help            show this help message and exit
@@ -18,22 +18,13 @@ Options:
                         Spacewalk Password
   -f CFG_FILE, --config-file=CFG_FILE
                         Config file for servers, users, passwords
-  -c SRC_CHANNEL, --src-channel=SRC_CHANNEL
-                        Source Channel Label: ie."lhm-rhel-6-x86_64"
-  -d DST_CHANNEL, --dst-channel=DST_CHANNEL
-                        Destination Channel Label: ie."clone-lhm-
-                        rhel-6-x86_64"
-  -e DST_PARENT_CHANNEL, --dst-parent-channel=DST_PARENT_CHANNEL
-                        Destination parent channel label. Only needed if '--
-                        create' option is used!
-  -g CHANNEL_NAME_PREFIX, --channel-name-prefix=CHANNEL_NAME_PREFIX
-                        Prefix of the channel name. Default to 'Clone of'
-  --create              Create destination channel if it does not exist. All
-                        parameter (except the channel label) will deviated
-                        from the orginal channel
-  -n, --dry-run         Just print what would be done
-  --latest-only         Only merge the latest version of the packages found in
-                        the parent channel
-  -v, --verbose
-  -q, --quiet
+  -c CHANNEL, --channel=CHANNEL
+                        Channel Label: ie."lhm-rhel-6-x86_64"
+  -d DIRECTORY, --directory=DIRECTORY
+                        Destination directory
+  -e SATDIR, --satdir=SATDIR
+                        Satellite directory. Defaults to /var/satellite
+  --pcount=PCOUNT       Number of parallel processes (default=5)
+  --clean               Cleanup the repodata/ and the packages/ dir
+  --all                 Link all packages (instead of the latest)
 </pre>
