@@ -1,11 +1,11 @@
 spacewalk-remove-old-packages.py
 ===============================
 
-What is this script for? 
+What is this script for?
 ------------------------
 
  This script deletes all old packages from one channel or deletes packages
- without channel. 
+ without channel.
 
  To remove the packages from the filesystem you must use spacewalk-data-fsck
  afterwards (-r option).
@@ -19,7 +19,7 @@ Usage
 
 <pre>
  usage: spacewalk-remove-old-packages.py [options]
- 
+
  options:
    -h, --help            show this help message and exit
    -s SPW_SERVER, --spw-server=SPW_SERVER
@@ -32,6 +32,9 @@ Usage
                          Config file for servers, users, passwords
    -c CHANNEL, --channel=CHANNEL
                          Channel Label: ie."myown-rhel-6-x86_64"
+   -A, --all-channels
+                         Delete packages from all channels. Overwrites the
+                         channel option
    -w, --without-channels
                          Delete packages without channel. Overwrites the
                          channel option
@@ -40,7 +43,7 @@ Usage
 </pre>
 
 The configuration file must be parseable bei ConfigParser:<br>
-Example: 
+Example:
 
 <pre>
 [Spacewalk]
