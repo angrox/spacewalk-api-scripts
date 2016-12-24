@@ -187,10 +187,13 @@ def main():
 
     if len(to_delete) > 0:
         if options.dryrun is None:
-            if options.wo_channel is None:
+            if options.wo_channel is None and options.all_channel is None:
                 print "Removing %d packages from channel %s" % (len(to_delete_ids), options.channel)
                 ret = spacewalk.channel.software.removePackages(spacekey, options.channel, to_delete_ids)
-        elif options.wo_channel is None:
+            elif options.all_channel is not None:
+                print "Removing %d packages from channel %s" % (len(to_delete_ids), chan['label'])
+                ret = spacewalk.channel.software.removePackages(spacekey, chan['label'], to_delete_ids)
+        elif options.wo_channel is None and options.all_channel is None:
             print "Dryrun: Removing %d packages from channel %s" % (len(to_delete_ids), options.channel)
         print "Deleting packages from spacewalk (if packages could not be removed they are maybe in another channel too)"
         for pkg in to_delete:
