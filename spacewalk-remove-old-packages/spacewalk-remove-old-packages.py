@@ -203,10 +203,10 @@ def main():
                 print "Deleting package %s-%s-%s (ID: %s)" % (pkg['name'], pkg['version'], pkg['release'],pkg['id'])
                 try:
                     ret = spacewalk.packages.removePackage(spacekey, pkg['id'])
+                    if ret != 1:
+                        print " - Could not delete package %s-%s-%s (ID: %s)" % (pkg['name'], pkg['version'], pkg['release'],pkg['id'])
                 except:
                     print "  - Could not delete package from Spacewalk"
-                if ret != 1:
-                    print " - Could not delete package %s-%s-%s (ID: %s)" % (pkg['name'], pkg['version'], pkg['release'],pkg['id'])
 
 
 
