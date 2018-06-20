@@ -67,6 +67,7 @@ import getpass
 
 from subprocess import *
 from optparse import OptionParser
+from pprint import pprint
 
 
 def parse_args():
@@ -77,9 +78,9 @@ def parse_args():
             help="Spacewalk User")
     parser.add_option("-p", "--spw-pass", type="string", dest="spw_pass",
             help="Spacewalk Password")
-    parser.add_option("-f", "--config-file", type="string", dest="cfg_file",
+    parser.add_option("-c", "--config-file", type="string", dest="cfg_file",
             help="Config file for servers, users, passwords")
-    parser.add_option("-c", "--channel", type="string", dest="channel",
+    parser.add_option("-C", "--channel", type="string", dest="channel",
             help="Channel Label: ie.\"lhm-rhel-6-x86_64\"")
     parser.add_option("-A", "--all-channels", action="store_true", dest="all_channel",
             help="Delete packages from all channels. Overwrites the channel option")
@@ -91,6 +92,10 @@ def parse_args():
             help="Limit number of packages removed to MAX. Default: no limit.")
     parser.add_option("-n", "--dryrun", action="store_true", dest="dryrun",
             help="No change is actually made, only print what would be done")
+    parser.add_option("-f", "--force", action="store_true", dest="force",
+            help="Disable check for whether a package is installed on any system (faster)")
+    parser.add_option("-d", "--debug", action="store_true", dest="debug",
+            help="Print more junk")
     (options,args) = parser.parse_args()
     return options
 
@@ -133,6 +138,7 @@ def main():
 
     to_delete=[]
     to_delete_ids=[]
+    to_keep={}
     # get all packages
     if options.wo_channel is None and options.lucene is None and options.all_channel is None:
         print "Getting all packages"
@@ -143,10 +149,21 @@ def main():
         newpkgs = spacewalk.channel.software.listLatestPackages(spacekey, options.channel)
         print " - Amount: %d" % len(newpkgs)
         for pkg in allpkgs:
-            if not cmp_dictarray(newpkgs, pkg['id']):
+            if options.force is not True:
+	        is_installed = spacewalk.system.listSystemsWithPackage(spacekey,pkg['id'])
+            else:
+                is_installed = None
+            if options.debug:
+                print "Processing package "+pkg['name']+", "+pkg['version']+", installed anywhere ("+str(bool(is_installed))
+            if not cmp_dictarray(newpkgs, pkg['id']) and not is_installed:
                 print "Marked:  %s-%s-%s (id %s)" % (pkg['name'], pkg['version'], pkg['release'], pkg['id'])
                 to_delete.append(pkg)
                 to_delete_ids.append(pkg['id'])
+        if options.debug:
+            print "List of packages to delete:"
+            pprint(to_delete)
+            print "List of package IDs to delete:"
+            pprint(to_delete_ids)
         print "Removing packages from channel..."
 
     if options.all_channel is not None:
@@ -162,10 +179,17 @@ def main():
             newpkgs = spacewalk.channel.software.listLatestPackages(spacekey, chan['label'])
             print " - Amount: %d" % len(newpkgs)
             for pkg in allpkgs:
-                if not cmp_dictarray(newpkgs, pkg['id']):
-                    print "Marked:  %s-%s-%s (id %s)" % (pkg['name'], pkg['version'], pkg['release'], pkg['id'])
+                if options.force is not True:
+                    # don't remove installed packages
+                    is_installed = spacewalk.system.listSystemsWithPackage(spacekey,pkg['id'])
+                else:
+                    is_installed = None
+                if not cmp_dictarray(newpkgs, pkg['id']) and is_installed is None:
                     to_delete.append(pkg)
                     to_delete_ids.append(pkg['id'])
+                    print "Marked:  %s-%s-%s (id %s)" % (pkg['name'], pkg['version'], pkg['release'], pkg['id'])
+        pprint(to_delete)
+        pprint(to_delete_ids)
         print "Removing packages from all channels..."
 
     if options.wo_channel is not None:
@@ -182,7 +206,7 @@ def main():
         if len(to_delete_ids) > options.max:
             to_delete_ids = to_delete_ids[:options.max]
 
-
+    pprint(to_delete)
     print "Packages to remove: %s" % len(to_delete)
 
     if len(to_delete) > 0:
