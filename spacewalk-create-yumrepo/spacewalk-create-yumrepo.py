@@ -32,11 +32,7 @@ import sys
 import os
 import shutil
 
-from subprocess import *
 from optparse import OptionParser
-from multiprocessing import Process, Pool
-
-
 
 def parse_args():
     parser = OptionParser()
@@ -123,12 +119,8 @@ def main():
     for pkg in link_pkgs:
         pkg_id_list.append(pkg['id'])
 
-    pool=Pool(processes=options.pcount)
-    pkg_paths=pool.map(get_package_details, pkg_id_list)
-
-    for pkg_path in pkg_paths:
-        fn=pkg_path[0]
-        det=pkg_path[1]
+    for pkg_id in pkg_id_list:
+        fn,det=get_package_details(pkg_id)
         if not os.path.exists("%s/packages/%s" % (options.directory, fn)):
             os.symlink("%s/%s" % (options.satdir, det), "%s/packages/%s" % (options.directory, fn))
 
