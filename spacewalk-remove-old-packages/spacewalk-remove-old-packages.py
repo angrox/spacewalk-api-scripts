@@ -149,6 +149,13 @@ def main():
         newpkgs = spacewalk.channel.software.listLatestPackages(spacekey, options.channel)
         print " - Amount: %d" % len(newpkgs)
         for pkg in allpkgs:
+            if options.max:
+                if len(to_delete) > options.max:
+                    print "Hit max number of packages, breaking from loop"
+                    break
+                if len(to_delete_ids) > options.max:
+                    print "Hit max number of packages, breaking from loop"
+                    break
             if options.force is not True:
 	        is_installed = spacewalk.system.listSystemsWithPackage(spacekey,pkg['id'])
             else:
@@ -168,9 +175,18 @@ def main():
 
     if options.all_channel is not None:
         print "Getting all channels"
-        allchannels = spacewalk.channel.listAllChannels(spacekey)
+        allchannels1 = spacewalk.channel.listAllChannels(spacekey)
+	allchannels = sorted(allchannels1, key=lambda k: k['packages'],reverse=True) 
         print " - Amount: %d" % len(allchannels)
+	pprint(allchannels)
         for chan in allchannels:
+            if options.max:
+                if len(to_delete) > options.max:
+                    print "Hit max number of packages, breaking from loop"
+                    break
+                if len(to_delete_ids) > options.max:
+                    print "Hit max number of packages, breaking from loop"
+                    break
             print "Getting all packages from %s" % chan['label']
             allpkgs = spacewalk.channel.software.listAllPackages(spacekey, chan['label'])
             print " - Amount: %d" % len(allpkgs)
@@ -179,12 +195,22 @@ def main():
             newpkgs = spacewalk.channel.software.listLatestPackages(spacekey, chan['label'])
             print " - Amount: %d" % len(newpkgs)
             for pkg in allpkgs:
-                if options.force is not True:
+		is_installed = None
+                if options.max:
+                    if len(to_delete) > options.max:
+                        print "Hit max number of packages, breaking from loop"
+                        break
+                    if len(to_delete_ids) > options.max:
+                        print "Hit max number of packages, breaking from loop"
+                        break
+                if options.force is not True and pkg not in newpkgs:
                     # don't remove installed packages
                     is_installed = spacewalk.system.listSystemsWithPackage(spacekey,pkg['id'])
+                    if options.debug:
+                        print str(pkg['name'])+", version "+pkg['version']+" is installed on "+str(len(is_installed))+" systems"
                 else:
                     is_installed = None
-                if not cmp_dictarray(newpkgs, pkg['id']) and is_installed is None:
+                if not cmp_dictarray(newpkgs, pkg['id']) and len(is_installed) == 0 and pkg['id'] not in to_delete_ids:
                     to_delete.append(pkg)
                     to_delete_ids.append(pkg['id'])
                     print "Marked:  %s-%s-%s (id %s)" % (pkg['name'], pkg['version'], pkg['release'], pkg['id'])
