@@ -1,6 +1,8 @@
 spacewalk-api-scripts
 =====================
 
+2021-10-12: EOL. This repo is deprecated and archived. 
+
 What is this?
 -------------
 These are a few scripts which utilize the spacewalk api to perform various tasks. 
